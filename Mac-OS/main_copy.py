@@ -41,8 +41,11 @@ def realistic_typing(text, error_rate):
             typed_chars += 1
 
             # Calculate WPM and update the label
-            wpm = (typed_chars / 5) / (elapsed_time / 60)  # Calculate WPM (5 characters per word)
-            update_wpm(wpm)
+            elapsed_time = time.time() - start_time  # Ensure elapsed_time is calculated after the start time
+            if elapsed_time > 0:  # Ensure no division by zero
+                wpm = (typed_chars / 5) / (elapsed_time / 60)  # Calculate WPM (5 characters per word)
+                update_wpm(wpm)
+
         
         pyautogui.press('enter')
 
