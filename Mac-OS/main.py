@@ -151,7 +151,7 @@ waiting_label = ctk.CTkLabel(scrollable_frame, text="Waiting to start...", font=
 waiting_label.pack(pady=20)
 
 # Text input area with blue border
-text_area = ctk.CTkTextbox(scrollable_frame, height=200, width=400, border_color="#1F6AA5", border_width=2)  # Blue outline for the text area
+text_area = ctk.CTkTextbox(scrollable_frame, height=200, width=400, border_color="blue", border_width=2)  # Blue outline for the text area
 text_area.pack(pady=10)
 
 # Start Button
@@ -166,26 +166,48 @@ stop_button.pack(pady=5)
 countdown_label = ctk.CTkLabel(scrollable_frame, text="Starting in 5 seconds...")
 countdown_label.pack(pady=10)
 
-# WPM Slider
-wpm_label_input = ctk.CTkLabel(scrollable_frame, text="Set Target Typing Speed (WPM):")
+# WPM Output Label
+wpm_label = ctk.CTkLabel(scrollable_frame, text="Target WPM: 30")
+wpm_label.pack(pady=10)
+
+# Hamburger Menu Button (Top-right)
+def toggle_menu():
+    if menu_frame.winfo_ismapped():  # Check if the menu is currently visible
+        menu_frame.pack_forget()  # Hide menu
+    else:
+        menu_frame.pack(side="right", padx=10)  # Show menu
+
+hamburger_button = ctk.CTkButton(
+    scrollable_frame, 
+    text="☰", 
+    command=toggle_menu, 
+    width=50,        # Set custom width
+    height=50,       # Set custom height
+    font=("Arial", 20),  # Adjust font size
+    corner_radius=10  # Optional: Set corner radius for rounded corners
+)
+
+hamburger_button.place(relx=1.0, y=10, anchor="ne")  # Position the button at the top-right corner
+
+# Menu Frame with WPM and Error Rate Sliders
+menu_frame = ctk.CTkFrame(root)
+menu_frame.pack_forget()  # Initially hidden
+
+wpm_label_input = ctk.CTkLabel(menu_frame, text="Set Target Typing Speed (WPM):")
 wpm_label_input.pack()
 
-wpm_slider = ctk.CTkSlider(scrollable_frame, from_=10, to=120, command=update_wpm_parameters)  # WPM slider instead of text input
+wpm_slider = ctk.CTkSlider(menu_frame, from_=10, to=120, command=update_wpm_parameters)  # WPM slider instead of text input
 wpm_slider.set(global_wpm)  # Set default value of slider
 wpm_slider.pack()
 
 # Error Rate Percent Display
-error_rate_label = ctk.CTkLabel(scrollable_frame, text="Error Rate: 10%")  # Default error rate display
+error_rate_label = ctk.CTkLabel(menu_frame, text="Error Rate: 10%")  # Default error rate display
 error_rate_label.pack()
 
 # Error Slider
-error_slider = ctk.CTkSlider(scrollable_frame, from_=0, to=30, command=update_error_rate_label)  # Update label on slider change
-error_slider.set(10)  # Default Error Rate
+error_slider = ctk.CTkSlider(menu_frame, from_=0, to=30, command=update_error_rate_label)  # Update label on slider change
+error_slider.set(10)
 error_slider.pack(pady=10)
-
-# WPM Output Label
-wpm_label = ctk.CTkLabel(scrollable_frame, text="Target WPM: 30")
-wpm_label.pack(pady=10)
 
 # Start GUI loop
 root.mainloop()
