@@ -1,4 +1,4 @@
-# typing-sim
+# Typing-Sim
 Typing simulator that makes typing look realistic
- ## Known Errors
- - Quotes and hyphens do not work
+
+![icon](https://github.com/cmcejas/typing-sim/blob/stable-releases/icon.png?raw=true)
