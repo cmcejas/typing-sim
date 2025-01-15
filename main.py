@@ -3,6 +3,9 @@ import time
 import pyautogui
 import random
 from threading import Thread
+from datetime import datetime, timedelta
+import pytz  # For time zone support
+import tkinter.filedialog
 
 # Typing function with errors, delays, and random stops
 def realistic_typing(text, error_rate):
@@ -10,6 +13,9 @@ def realistic_typing(text, error_rate):
     start_time = time.time()
     typed_chars = 0
     time_since_last_pause = 0
+
+    # Disable text area editing while typing
+    text_area.configure(state="disabled")
 
     for line in text.splitlines():
         for char in line:
@@ -41,16 +47,64 @@ def realistic_typing(text, error_rate):
             # Calculate WPM and update the label
             wpm = (typed_chars / 5) / (elapsed_time / 60)  # Calculate WPM (5 characters per word)
             update_wpm(wpm)
-        
+            
+            # Update progress bar and time remaining
+            progress = typed_chars / total_chars
+            progress_bar.set(progress)
+            remaining_time = (elapsed_time / typed_chars) * (total_chars - typed_chars)
+            update_time_remaining(remaining_time)
         pyautogui.press('enter')
+
+    # Re-enable text area editing after typing
+    text_area.configure(state="normal")
 
 # Function to type a character
 def type_character(char):
     try:
         if char == " ":
             pyautogui.press('space')
+        elif char == "'":  # Single quote
+            pyautogui.press("'")
+        elif char == '"':  # Double quote
+            pyautogui.press('"')
+        elif char == "-":  # Hyphen
+            pyautogui.press("-")
+        elif char == "_":  # Underscore
+            pyautogui.hotkey("shift", "-")  # Shift + Hyphen
+        elif char == "!":  # Exclamation mark
+            pyautogui.hotkey("shift", "1")  # Shift + 1
+        elif char == "?":  # Question mark
+            pyautogui.hotkey("shift", "/")  # Shift + Slash
+        elif char == ".":  # Period
+            pyautogui.press(".")
+        elif char == ",":  # Comma
+            pyautogui.press(",")
+        elif char == ":":  # Colon
+            pyautogui.hotkey("shift", ";")  # Shift + Semicolon
+        elif char == ";":  # Semicolon
+            pyautogui.press(";")
+        elif char == "/":  # Forward slash
+            pyautogui.press("/")
+        elif char == "@":  # At symbol
+            pyautogui.hotkey("shift", "2")  # Shift + 2
+        elif char == "#":  # Hash symbol
+            pyautogui.hotkey("shift", "3")  # Shift + 3
+        elif char == "$":  # Dollar sign
+            pyautogui.hotkey("shift", "4")  # Shift + 4
+        elif char == "%":  # Percent sign
+            pyautogui.hotkey("shift", "5")  # Shift + 5
+        elif char == "&":  # Ampersand
+            pyautogui.hotkey("shift", "7")  # Shift + 7
+        elif char == "(":  # Opening parenthesis
+            pyautogui.hotkey("shift", "9")  # Shift + 9
+        elif char == ")":  # Closing parenthesis
+            pyautogui.hotkey("shift", "0")  # Shift + 0
+        elif char == "=":  # Equals sign
+            pyautogui.press("=")
+        elif char == "+":  # Plus sign
+            pyautogui.hotkey("shift", "=")  # Shift + Equals
         else:
-            pyautogui.write(char)
+            pyautogui.write(char)  # For regular characters, just type normally
     except Exception as e:
         print(f"Error typing character {char}: {e}")
 
@@ -137,22 +191,70 @@ def update_wpm_parameters(val):
 def update_error_rate_label(val):
     error_rate_label.configure(text=f"Error Rate: {int(float(val))}%")
 
-# Create GUI using customtkinter
+
+# Function to update the time remaining label
+def update_time_remaining(remaining_time):
+    minutes = int(remaining_time // 60)
+    seconds = int(remaining_time % 60)
+    time_remaining_label.configure(text=f"Time remaining: {minutes:02d}:{seconds:02d}")
+
+# Function to open a file dialog and load the file content into the text area
+def upload_file():
+    file_path = tkinter.filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])  # Only allow text files
+    if file_path:
+        try:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+                text_area.delete("1.0", "end")  # Clear any existing text
+                text_area.insert("1.0", file_content)  # Insert the file content into the text area
+        except Exception as e:
+            print(f"Error reading the file: {e}")
+
+# Create the main window
 root = ctk.CTk()
 root.title("Typing Simulator")
 root.geometry("800x600")  # Increased window size for better visibility
 
-# Create a scrollable frame
+# Create the sidebar frame (on the left side)
+sidebar_frame = ctk.CTkFrame(root, width=200, height=600, corner_radius=10)  # Set width and height to fill vertically
+sidebar_frame.pack(side="left", fill="y", padx=10, pady=10)  # Pack it on the left side
+
+# Sidebar content
+wpm_label_input = ctk.CTkLabel(sidebar_frame, text="Set Target Typing Speed (WPM):")
+wpm_label_input.pack(pady=10)
+
+wpm_slider = ctk.CTkSlider(sidebar_frame, from_=10, to=120, command=update_wpm_parameters)  # WPM slider
+wpm_slider.set(global_wpm)  # Set default value of slider
+wpm_slider.pack(pady=10)
+
+# Target WPM moved to sidebar
+wpm_label = ctk.CTkLabel(sidebar_frame, text=f"Target WPM: {global_wpm}")
+wpm_label.pack(pady=10)  # Add to sidebar
+
+# Error Rate Percent Display
+error_rate_label = ctk.CTkLabel(sidebar_frame, text="Error Rate: 10%")  # Default error rate display
+error_rate_label.pack(pady=10)
+
+# Error Slider
+error_slider = ctk.CTkSlider(sidebar_frame, from_=0, to=30, command=update_error_rate_label)  # Update label on slider change
+error_slider.set(10)
+error_slider.pack(pady=10)
+
+# Create a scrollable frame for the main content
 scrollable_frame = ctk.CTkScrollableFrame(root)
-scrollable_frame.pack(fill="both", expand=True, padx=20, pady=20)
+scrollable_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)  # Main content now on the right side
+
+# Title Card at the top of the window
+title_card = ctk.CTkLabel(scrollable_frame, text="Typing Simulator", font=("Arial", 24, "bold"), fg_color="grey", width=800, height=50, corner_radius=10)
+title_card.pack(side="top", fill="x", pady=10)
 
 # Waiting label
 waiting_label = ctk.CTkLabel(scrollable_frame, text="Waiting to start...", font=("Arial", 18))
 waiting_label.pack(pady=20)
 
-# Countdown label
-countdown_label = ctk.CTkLabel(scrollable_frame, text="Starting in 5 seconds...")
-countdown_label.pack(pady=10)
+# Upload File Button
+upload_button = ctk.CTkButton(scrollable_frame, text="Upload File", command=upload_file)
+upload_button.pack(pady=5)
 
 # Text input area with blue border
 text_area = ctk.CTkTextbox(scrollable_frame, height=200, width=400, border_color="blue", border_width=2)  # Blue outline for the text area
@@ -166,68 +268,39 @@ start_button.pack(pady=5)
 stop_button = ctk.CTkButton(scrollable_frame, text="Stop Typing", command=stop_typing_function)
 stop_button.pack(pady=5)
 
-# Error Slider
-error_slider = ctk.CTkSlider(scrollable_frame, from_=0, to=30, command=update_error_rate_label)  # Update label on slider change
-error_slider.set(10)  # Default Error Rate
-error_slider.pack(pady=10)
+# Countdown label
+countdown_label = ctk.CTkLabel(scrollable_frame, text="Starting in 5 seconds...")
+countdown_label.pack(pady=10)
 
-# Error Rate Percent Display
-error_rate_label = ctk.CTkLabel(scrollable_frame, text="Error Rate: 10%")  # Default error rate display
-error_rate_label.pack()
+# Time Remaining Label
+time_remaining_label = ctk.CTkLabel(scrollable_frame, text="Time remaining: 00:00")
+time_remaining_label.pack(pady=10)
 
-<<<<<<< HEAD:main.py
-# WPM Slider
-wpm_label_input = ctk.CTkLabel(scrollable_frame, text="Set Target Typing Speed (WPM):")
-wpm_label_input.pack()
+# Progress Bar
+progress_bar = ctk.CTkProgressBar(scrollable_frame, width=400)
+progress_bar.pack(pady=20)
 
-wpm_slider = ctk.CTkSlider(scrollable_frame, from_=10, to=120, command=update_wpm_parameters)  # WPM slider instead of text input
-wpm_slider.set(global_wpm)  # Set default value of slider
-wpm_slider.pack()
-
-=======
->>>>>>> 5b0432c1de375a8a4308a9d805886b1d9e87bc3b:Mac-OS/main.py
-# WPM Output Label
-wpm_label = ctk.CTkLabel(scrollable_frame, text="Target WPM: 30")
-wpm_label.pack(pady=10)
-
-# Hamburger Menu Button (Top-right)
-def toggle_menu():
-    if menu_frame.winfo_ismapped():  # Check if the menu is currently visible
-        menu_frame.pack_forget()  # Hide menu
+# Function to toggle the sidebar and adjust the hamburger button's position
+def toggle_sidebar():
+    if sidebar_frame.winfo_ismapped():  # Check if the sidebar is currently visible
+        sidebar_frame.pack_forget()  # Hide the sidebar
+        hamburger_button.place(relx=0.95, y=10, anchor="ne")  # Move hamburger button back to the right
     else:
-        menu_frame.pack(side="right", padx=10)  # Show menu
+        sidebar_frame.pack(side="left", fill="y", padx=10, pady=10)  # Show the sidebar
+        hamburger_button.place(relx=0.95, y=10, anchor="ne")  # Keep hamburger button on the right side
 
+# Hamburger Button positioned at the top-right (initially)
 hamburger_button = ctk.CTkButton(
-    scrollable_frame, 
+    root, 
     text="☰", 
-    command=toggle_menu, 
+    command=toggle_sidebar, 
     width=50,        # Set custom width
     height=50,       # Set custom height
     font=("Arial", 20),  # Adjust font size
     corner_radius=10  # Optional: Set corner radius for rounded corners
 )
 
-hamburger_button.place(relx=1.0, y=10, anchor="ne")  # Position the button at the top-right corner
-
-# Menu Frame with WPM and Error Rate Sliders
-menu_frame = ctk.CTkFrame(root)
-menu_frame.pack_forget()  # Initially hidden
-
-wpm_label_input = ctk.CTkLabel(menu_frame, text="Set Target Typing Speed (WPM):")
-wpm_label_input.pack()
-
-wpm_slider = ctk.CTkSlider(menu_frame, from_=10, to=120, command=update_wpm_parameters)  # WPM slider instead of text input
-wpm_slider.set(global_wpm)  # Set default value of slider
-wpm_slider.pack()
-
-# Error Rate Percent Display
-error_rate_label = ctk.CTkLabel(menu_frame, text="Error Rate: 10%")  # Default error rate display
-error_rate_label.pack()
-
-# Error Slider
-error_slider = ctk.CTkSlider(menu_frame, from_=0, to=30, command=update_error_rate_label)  # Update label on slider change
-error_slider.set(10)
-error_slider.pack(pady=10)
+hamburger_button.place(relx=0.95, y=10, anchor="ne")  # Initial position of the button on the top-right
 
 # Start GUI loop
 root.mainloop()
