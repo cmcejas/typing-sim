@@ -1,5 +1,1 @@
-## Things to come
-- wrapped project
-  - using pyinstaller
-- installer for mac
-- reminder to allow the permissions for the app
+Fully wrapped application just download it, extract it, and move it to applications folder.
