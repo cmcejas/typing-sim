@@ -1,3 +1,5 @@
+import sys
+import os 
 import customtkinter as ctk
 import time
 import pyautogui
@@ -9,6 +11,18 @@ import tkinter.filedialog
 
 accent_color = "#d5f54c"
 second_color = "#edffa1"
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        # When running the script directly
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 # Typing function with errors, delays, and random stops
 def realistic_typing(text, error_rate):
@@ -218,7 +232,7 @@ def upload_file():
 # Create the main window
 root = ctk.CTk()
 root.title("Typing Simulator")
-root.iconbitmap("icon.ico")
+root.iconbitmap(resource_path("icon.ico"))
 root.geometry("800x600")  # Increased window size for better visibility
 
 # Create the sidebar frame (on the left side)
@@ -283,7 +297,8 @@ time_remaining_label = ctk.CTkLabel(scrollable_frame, text="Time remaining: 00:0
 time_remaining_label.pack(pady=10)
 
 # Progress Bar
-progress_bar = ctk.CTkProgressBar(scrollable_frame, width=400, progress_color=accent_color)
+progress_bar = ctk.CTkProgressBar(scrollable_frame, width=600, progress_color=accent_color)
+progress_bar.set(0)  # Set initial value
 progress_bar.pack(pady=20)
 
 # Function to toggle the sidebar and adjust the hamburger button's position
@@ -309,6 +324,7 @@ hamburger_button = ctk.CTkButton(
 )
 
 hamburger_button.place(relx=0.95, y=10, anchor="ne")  # Initial position of the button on the top-right
+
 
 # Start GUI loop
 root.mainloop()
